@@ -245,13 +245,17 @@ class ZenodoSearcher(PaperSource):
 
             abstract = re.sub(r"<[^>]+>", " ", abstract).strip()
 
-            pub_date_str = meta.get("publication_date", "")
-            pub_date = None
-            if len(pub_date_str) >= 4:
+            # Paper.to_dict() calls .isoformat() on published_date, so the
+            # field must be a datetime (or None). Zenodo gives YYYY-MM-DD or
+            # YYYY-MM or YYYY; parse what's there and fall back to None.
+            pub_date_str = (meta.get("publication_date") or "")[:10]
+            pub_date: Optional[datetime] = None
+            for fmt in ("%Y-%m-%d", "%Y-%m", "%Y"):
                 try:
-                    pub_date = datetime.fromisoformat(pub_date_str[:10])
-                except ValueError:
-                    pub_date = datetime(int(pub_date_str[:4]), 1, 1)
+                    pub_date = datetime.strptime(pub_date_str, fmt)
+                    break
+                except (ValueError, TypeError):
+                    continue
 
             # Pick the best available PDF url from top-level links
             pdf_url = ""

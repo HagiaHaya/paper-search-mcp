@@ -240,16 +240,19 @@ class HALSearcher(PaperSource):
                 doi = doi[0] if doi else ""
 
             year = doc.get("publicationDateY_i") or doc.get("producedDateY_i", "")
-            pub_date_str = str(year) if year else (doc.get("submittedDate_s", "") or "")[:10]
-            pub_date = None
-            if pub_date_str:
+            pub_date_str = (
+                str(year) if year else (doc.get("submittedDate_s", "") or "")[:10]
+            )
+            # Paper.to_dict() calls .isoformat() on published_date, so the field
+            # must be a datetime (or None). Parse YYYY or YYYY-MM-DD; fall back
+            # to None on anything else rather than raising downstream.
+            pub_date: Optional[datetime] = None
+            for fmt in ("%Y-%m-%d", "%Y"):
                 try:
-                    pub_date = datetime.fromisoformat(pub_date_str[:10])
-                except ValueError:
-                    try:
-                        pub_date = datetime(int(pub_date_str[:4]), 1, 1)
-                    except (ValueError, TypeError):
-                        pub_date = None
+                    pub_date = datetime.strptime(pub_date_str, fmt)
+                    break
+                except (ValueError, TypeError):
+                    continue
 
             pdf_url = doc.get("fileMain_s", "") or ""
             record_url = doc.get("uri_s", f"https://hal.archives-ouvertes.fr/{hal_id}")
