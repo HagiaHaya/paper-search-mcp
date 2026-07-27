@@ -532,21 +532,17 @@ class TestSemanticSearcher(unittest.TestCase):
         self.assertIsNotNone(paper)
         self.assertIsNone(paper.published_date)
 
-    def test_semantic_accessibility_probe_is_memoized(self):
-        check_semantic_accessible.cache_clear()
-        response = MagicMock()
-        response.status_code = 200
-        response.__enter__.return_value = response
+    def test_anonymous_rate_limit_fails_fast(self):
+        response = Mock()
+        response.status_code = 429
+        response.headers = {}
 
-        try:
-            with patch.object(requests, "get", return_value=response) as mocked_get:
-                self.assertTrue(check_semantic_accessible())
-                self.assertTrue(check_semantic_accessible())
+        with patch.object(self.searcher, "get_api_key", return_value=None), \
+             patch.object(self.searcher.session, "get", return_value=response) as get:
+            result = self.searcher.request_api("paper/search", {"query": "test"})
 
-            mocked_get.assert_called_once()
-            response.__exit__.assert_called_once()
-        finally:
-            check_semantic_accessible.cache_clear()
+        self.assertEqual(result["error"], "rate_limited")
+        self.assertEqual(get.call_count, 1)
 
     @unittest.skipUnless(check_semantic_accessible(), "Semantic Scholar not accessible")
     def test_search_basic(self):
