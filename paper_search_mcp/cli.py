@@ -93,6 +93,11 @@ def _get_searcher(source: str) -> Any:
     SEARCHERS[source] = searcher
     return searcher
 
+    scopus_key = get_env("SCOPUS_API_KEY", "")
+    if scopus_key:
+        from .academic_platforms.scopus import ScopusSearcher
+        SEARCHERS["scopus"] = ScopusSearcher(api_key=scopus_key)
+
 
 ALL_SOURCES = [
     "arxiv", "pubmed", "biorxiv", "medrxiv", "google_scholar", "iacr",
