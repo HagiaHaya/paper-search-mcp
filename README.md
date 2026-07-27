@@ -148,12 +148,8 @@ All keys are **optional** unless noted. Configure them in `~/.config/paper-searc
 | `PAPER_SEARCH_MCP_ZENODO_ACCESS_TOKEN` | Zenodo | Optional | Free at [zenodo.org](https://zenodo.org/account/settings/applications/) — required for private records |
 | `PAPER_SEARCH_MCP_IEEE_API_KEY` | IEEE Xplore | **Required to activate** | Free at [developer.ieee.org](https://developer.ieee.org/) |
 | `PAPER_SEARCH_MCP_ACM_API_KEY` | ACM DL | **Required to activate** | See [libraries.acm.org/digital-library/acm-open](https://libraries.acm.org/digital-library/acm-open) |
-<<<<<<< HEAD
 | `PAPER_SEARCH_MCP_WOS_API_KEY` | Web of Science | **Required to activate** | Clarivate API key at [developer.clarivate.com](https://developer.clarivate.com/) |
-=======
 | `PAPER_SEARCH_MCP_SCOPUS_API_KEY` | Scopus (Elsevier) | **Required to activate** | Free at [dev.elsevier.com](https://dev.elsevier.com/) — available results depend on your Scopus subscription entitlements |
->>>>>>> pr-89
-
 All variables follow the `PAPER_SEARCH_MCP_<NAME>` prefix scheme. Legacy names without the prefix (e.g. `CORE_API_KEY`, `UNPAYWALL_EMAIL`) are still supported for backward compatibility.
 
 ---
@@ -184,23 +180,18 @@ IEEE Xplore, ACM Digital Library, and Scopus connectors are **opt-in** and
 |---|---|---|
 | IEEE Xplore | `PAPER_SEARCH_MCP_IEEE_API_KEY` | 🚧 skeleton — search registered, download/read raise `NotImplementedError` |
 | ACM Digital Library | `PAPER_SEARCH_MCP_ACM_API_KEY` | 🚧 skeleton — search registered, download/read raise `NotImplementedError` |
-<<<<<<< HEAD
 | Web of Science | `PAPER_SEARCH_MCP_WOS_API_KEY` | metadata search available; download/read are not supported directly |
-=======
 | Scopus (Elsevier) | `PAPER_SEARCH_MCP_SCOPUS_API_KEY` | ✅ implemented — advanced search (field/sort/date filters) plus full-text read via ScienceDirect for entitled articles |
->>>>>>> pr-89
 
 **How to enable:**
 
 ```bash
 export PAPER_SEARCH_MCP_IEEE_API_KEY=<your_ieee_key>       # free key at https://developer.ieee.org/
 export PAPER_SEARCH_MCP_ACM_API_KEY=<your_acm_key>         # see https://libraries.acm.org/digital-library
-<<<<<<< HEAD
 export PAPER_SEARCH_MCP_WOS_API_KEY=<your_wos_key>         # see https://developer.clarivate.com/
 ```
 
 Once a key is set, the corresponding source is automatically added to `ALL_SOURCES` and its MCP tools (`search_ieee` / `search_acm` / `search_wos`, `download_ieee` / `download_acm` / `download_wos`, `read_ieee_paper` / `read_acm_paper` / `read_wos_paper`) are registered at server startup.
-=======
 export PAPER_SEARCH_MCP_SCOPUS_API_KEY=<your_scopus_key>   # free key at https://dev.elsevier.com/
 ```
 
@@ -247,7 +238,6 @@ paper-search sources        # lists scopus when the key is configured
 ```
 
 > **Note:** which records and full texts are returned depends on the Scopus/ScienceDirect entitlements associated with your key and subscription. Requests beyond your entitlements fail gracefully with a clear authorization message; rate limiting honors `Retry-After`, and an exhausted weekly quota is reported immediately instead of being retried.
->>>>>>> pr-89
 
 Without a key the connectors log a startup warning only — the rest of the server is unaffected.
 
