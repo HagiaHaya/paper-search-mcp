@@ -1,3 +1,4 @@
+from typing import Any, List, Optional
 from datetime import datetime
 import logging
 import re
@@ -45,60 +46,14 @@ class OpenAlexSearcher(PaperSource):
             logger.warning(f"Error reconstructing OpenAlex abstract: {e}")
             return ""
 
-    @staticmethod
-    def _extract_ssrn_abstract_id(value: str) -> str:
-        """Extract SSRN abstract_id from a locator URL."""
-        match = re.search(r"abstract(?:_id)?[=_](\d+)", value or "")
-        return match.group(1) if match else ""
-
-    def _iter_ssrn_locator_candidates(self, item: dict[str, Any]) -> list[str]:
-        """Yield URL candidates that may contain an SSRN abstract identifier."""
-        candidates: list[str] = []
-
-        primary_location = item.get("primary_location") or {}
-        if isinstance(primary_location, dict):
-            for key in ("landing_page_url", "pdf_url"):
-                value = primary_location.get(key)
-                if value:
-                    candidates.append(value)
-
-        for location in item.get("locations") or []:
-            if not isinstance(location, dict):
-                continue
-            for key in ("landing_page_url", "pdf_url"):
-                value = location.get(key)
-                if value:
-                    candidates.append(value)
-
-        open_access = item.get("open_access") or {}
-        if isinstance(open_access, dict):
-            oa_url = open_access.get("oa_url")
-            if oa_url:
-                candidates.append(oa_url)
-
-        deduped: list[str] = []
-        seen: set[str] = set()
-        for candidate in candidates:
-            if candidate not in seen:
-                deduped.append(candidate)
-                seen.add(candidate)
-        return deduped
-
-    def _normalize_ssrn_paper_id(self, item: dict[str, Any]) -> tuple[str, str]:
-        """Return SSRN-compatible paper_id and matched locator URL."""
-        for candidate in self._iter_ssrn_locator_candidates(item):
-            abstract_id = self._extract_ssrn_abstract_id(candidate)
-            if abstract_id:
-                return f"ssrn:{abstract_id}", candidate
-        return "", ""
-
-    def search(self, query: str, max_results: int = 10) -> List[Paper]:
+    def search(self, query: str, max_results: int = 10, **kwargs: Any) -> List[Paper]:
         """
         Search OpenAlex works. Uses the 'search' filter.
 
         Args:
             query: Search query string
             max_results: Maximum results to return (natively max 200 per page)
+            **kwargs: Additional OpenAlex parameters like `filter`.
 
         Returns:
             List[Paper]: List of found papers with metadata.
@@ -110,6 +65,8 @@ class OpenAlexSearcher(PaperSource):
                 "search": query,
                 "per_page": min(max_results, 200),
             }
+            if "filter" in kwargs:
+                params["filter"] = kwargs["filter"]
 
             response = self.session.get(self.BASE_URL, params=params, timeout=30)
             
